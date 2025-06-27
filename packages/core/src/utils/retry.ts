@@ -93,27 +93,9 @@ export async function retryWithBackoff<T>(
         consecutive429Count = 0;
       }
 
-      // If we have persistent 429s and a fallback callback for OAuth
-      if (
-        consecutive429Count >= 2 &&
-        onPersistent429 &&
-        authType === AuthType.LOGIN_WITH_GOOGLE
-      ) {
-        try {
-          const fallbackModel = await onPersistent429(authType);
-          if (fallbackModel) {
-            // Reset attempt counter and try with new model
-            attempt = 0;
-            consecutive429Count = 0;
-            currentDelay = initialDelayMs;
-            // With the model updated, we continue to the next attempt
-            continue;
-          }
-        } catch (fallbackError) {
-          // If fallback fails, continue with original error
-          console.warn('Fallback to Flash model failed:', fallbackError);
-        }
-      }
+      // DISABLED: No longer downgrading to flash model for persistent 429s
+      // We always maintain the selected model (likely gemini-2.5-pro) regardless of latency/429 errors
+      // Note: Original code included a model fallback mechanism here that was removed
 
       // Check if we've exhausted retries or shouldn't retry
       if (attempt >= maxAttempts || !shouldRetry(error as Error)) {
